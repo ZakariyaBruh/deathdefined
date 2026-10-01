@@ -1,6 +1,6 @@
-# CineOS
+# CineStream
 
-A full desktop operating system for cinema and television, running in the browser. It grew out of CineStream (a minimalist film and TV archive) and keeps its catalog, parental controls and streaming-server logic, now wrapped in a real window manager and a set of apps.
+A movie and series app with a glass dock and an App Store. It opens straight into the movie browser; the dock switches between apps, and the App Store adds extras you can install or remove.
 
 ```bash
 npm install
@@ -9,7 +9,13 @@ npm run build    # production bundle in dist/
 npm run lint     # type-check
 ```
 
-## The system
+## How it works
+
+- **Movies first:** the app launches full-screen into CineStore. Prefer floating windows? Settings → General → Floating windows.
+- **Dock:** Movies, Library, your installed extras, App Store, Settings.
+- **App Store:** Direct Play, Insights, Trivia, Snake, Terminal, Notes, Files, Calculator, Clock and Activity are optional; Get adds one to the dock, Remove takes it off.
+
+## The shell underneath
 
 | Layer | What you get |
 | --- | --- |

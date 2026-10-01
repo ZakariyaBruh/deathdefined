@@ -1,8 +1,8 @@
 import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from 'motion/react';
-import { LayoutGrid, Pin, PinOff, Power, X } from 'lucide-react';
+import { LayoutGrid, Trash2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { APP_META, appMeta } from '../appMeta';
-import { closeApp, closeWindow, focusWindow, minimizeWindow, openApp, setSettings, togglePanel, useOS } from '../store';
+import { appMeta, dockApps } from '../appMeta';
+import { closeApp, closeWindow, focusWindow, minimizeWindow, openApp, togglePanel, uninstallApp, useOS } from '../store';
 import { AppIcon } from '../ui/icons';
 import { showContextMenu } from './ctx';
 import { sfx } from '../sound';
@@ -45,15 +45,16 @@ function DockIcon({ id, mouseX, size, magnify, running, focused, onClick, onCont
 }
 
 export function Dock({ mobile }: { mobile: boolean }) {
-  const pinned = useOS((s) => s.settings.dockPinned);
+  const installed = useOS((s) => s.settings.installed);
   const size = useOS((s) => s.settings.dockSize);
   const magnify = useOS((s) => s.settings.dockMagnify) && !mobile;
   const windows = useOS((s) => s.windows);
   const focusId = useOS((s) => s.focusId);
   const mouseX = useMotionValue(Infinity);
   
-  const runningIds = [...new Set(windows.map((w) => w.appId))].filter((id) => !pinned.includes(id) && !appMeta(id)?.hidden);
-  const items = [...pinned, ...runningIds].filter((id) => appMeta(id));
+  const items = dockApps(installed);
+  const runningIds = [...new Set(windows.map((w) => w.appId))].filter((id) => !items.includes(id) && !appMeta(id)?.hidden);
+  items.push(...runningIds);
   const minimized = windows.filter((w) => w.minimized);
   const focusedApp = windows.find((w) => w.id === focusId)?.appId;
   const slots = items.length + minimized.length + 1;
@@ -70,13 +71,11 @@ export function Dock({ mobile }: { mobile: boolean }) {
 
   const ctx = (id: string) => (e: React.MouseEvent) => {
     const meta = appMeta(id)!;
-    const isPinned = pinned.includes(id);
     const mine = windows.filter((w) => w.appId === id);
     showContextMenu(e, [
       { label: mine.length ? 'Show' : 'Open', onClick: () => activate(id) },
       ...(!meta.single && mine.length ? [{ label: 'New Window', onClick: () => openApp(id) }] : []),
-      { sep: true },
-      { label: isPinned ? 'Remove from Dock' : 'Keep in Dock', icon: isPinned ? <PinOff size={14} /> : <Pin size={14} />, onClick: () => setSettings({ dockPinned: isPinned ? pinned.filter((p) => p !== id) : [...pinned, id] }) },
+      ...(!meta.core ? [{ sep: true }, { label: 'Remove App', icon: <Trash2 size={14} />, danger: true, onClick: () => uninstallApp(id) }] : []),
       ...(mine.length ? [{ label: 'Quit', icon: <X size={14} />, danger: true, onClick: () => closeApp(id) }] : []),
     ]);
   };
@@ -108,5 +107,3 @@ export function Dock({ mobile }: { mobile: boolean }) {
   );
 }
 
-export const DOCK_APPS = APP_META.filter((a) => !a.hidden);
-export const PowerIcon = Power;

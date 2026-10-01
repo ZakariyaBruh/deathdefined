@@ -3,7 +3,7 @@ import { ACCENTS } from './os/appMeta';
 import { Boot, Lock, PoweredOff } from './os/shell/Boot';
 import { Desktop } from './os/shell/Desktop';
 import { Shortcuts } from './os/shell/Shortcuts';
-import { notify, setState, useOS } from './os/store';
+import { getState, notify, openApp, setState, useOS } from './os/store';
 
 export default function App() {
   const phase = useOS((s) => s.phase);
@@ -32,6 +32,7 @@ export default function App() {
 
   useEffect(() => {
     if (phase !== 'desktop') return;
+    if (getState().windows.length === 0) openApp('store');
     const t = window.setTimeout(() => notify(`Welcome, ${name}`, 'Press Ctrl/⌘ + K to search everything.', { appId: 'store' }), 900);
     return () => window.clearTimeout(t);
   }, [phase, name]);

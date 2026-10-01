@@ -4,7 +4,7 @@ import { appMeta } from '../appMeta';
 const map: Record<string, L.LucideIcon> = {
   Clapperboard: L.Clapperboard, Bookmark: L.Bookmark, Play: L.Play, Link2: L.Link2, BarChart3: L.BarChart3, HelpCircle: L.HelpCircle,
   Gamepad2: L.Gamepad2, Terminal: L.Terminal, StickyNote: L.StickyNote, FolderOpen: L.FolderOpen, Calculator: L.Calculator,
-  Clock: L.Clock, Activity: L.Activity, Settings: L.Settings, Info: L.Info,
+  Clock: L.Clock, ShoppingBag: L.ShoppingBag, Activity: L.Activity, Settings: L.Settings, Info: L.Info,
 };
 
 export function AppIcon({ id, size = 48, className = '' }: { id: string; size?: number; className?: string }) {

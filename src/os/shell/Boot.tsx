@@ -27,7 +27,7 @@ export function Boot() {
         <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8 }} className="mb-8 grid h-24 w-24 place-items-center rounded-[26px] bg-white text-black shadow-[0_0_80px_rgba(255,255,255,.25)]">
           <Play size={44} fill="currentColor" className="ml-1" />
         </motion.div>
-        <div className="font-[var(--font-display)] text-3xl font-semibold tracking-[0.3em]">CINEOS</div>
+        <div className="font-[var(--font-display)] text-3xl font-semibold tracking-[0.3em]">CINESTREAM</div>
         <div className="mt-8 h-1 w-56 overflow-hidden rounded-full bg-white/15"><motion.div className="h-full rounded-full bg-white" animate={{ width: `${Math.min(100, (p / LINES.length) * 100)}%` }} transition={{ ease: 'easeOut' }} /></div>
         <div className="mt-3 h-4 font-mono text-[11px] text-white/50">{LINES[Math.min(p, LINES.length - 1)]}</div>
       </div>

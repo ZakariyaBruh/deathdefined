@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import type { MediaItem } from '../types';
 import { DEFAULT_USER_SETTINGS } from '../utils/ageFilter';
 import { STREAMING_SERVERS } from '../utils/servers';
-import { APP_META, DEFAULT_DOCK, appMeta } from './appMeta';
+import { APP_META, appMeta, isInstalled } from './appMeta';
 import type { Notif, Note, OSSettings, OSState, Panel, Persisted, Rect, WinState } from './types';
 
 const STORAGE_KEY = 'cineos.v1';
@@ -13,7 +13,8 @@ const DEFAULT_SETTINGS: OSSettings = {
   theme: 'dark',
   accent: 'mono',
   wallpaper: 'noir',
-  dockPinned: DEFAULT_DOCK,
+  installed: ['notes', 'trivia'],
+  windowed: false,
   dockMagnify: true,
   dockSize: 52,
   clock24: false,
@@ -21,9 +22,9 @@ const DEFAULT_SETTINGS: OSSettings = {
   reduceMotion: false,
   brightness: 100,
   dnd: false,
-  showWidgets: true,
-  showDesktopIcons: true,
-  skipBoot: false,
+  showWidgets: false,
+  showDesktopIcons: false,
+  skipBoot: true,
   parental: { ...DEFAULT_USER_SETTINGS },
   parentalPin: '',
 };
@@ -47,8 +48,8 @@ function load(): Persisted {
     parental: { ...DEFAULT_USER_SETTINGS, ...(saved?.settings?.parental ?? (saved ? {} : oldSettings ?? {})) },
   };
   const welcome: Note = {
-    id: uid(), title: 'Welcome to CineOS', color: '#fde047', updated: Date.now(), pinned: true,
-    body: 'Welcome to CineOS.\n\n• Press Ctrl/⌘ + K for Spotlight — search apps, the whole film archive, do maths.\n• Right-click the desktop for options.\n• Open Terminal and type `help`.\n• Drag windows to the screen edges to snap them.\n• Settings → Parental Controls keeps the archive family-safe.\n\nEnjoy the show.',
+    id: uid(), title: 'Welcome to CineStream', color: '#fde047', updated: Date.now(), pinned: true,
+    body: 'Welcome to CineStream.\n\n• Press Ctrl/⌘ + K to search every film and series.\n• The App Store in the dock adds extras: Terminal, Insights, Direct Play and more.\n• Settings → Parental Controls keeps the archive family-safe.\n• Prefer floating windows? Settings → General → Floating windows.\n\nEnjoy the show.',
   };
   return {
     settings,
@@ -73,7 +74,7 @@ let state: OSState = {
   online: typeof navigator === 'undefined' ? true : navigator.onLine,
   menuOpen: null,
 };
-if (state.settings.skipBoot) state.phase = 'lock';
+if (state.settings.skipBoot) state.phase = 'desktop';
 
 const listeners = new Set<() => void>();
 let persistTimer: number | undefined;
@@ -133,6 +134,10 @@ function cascade(w: number, h: number, n: number): Rect {
 export function openApp(appId: string, props: any = {}, opts: { key?: string; title?: string; w?: number; h?: number } = {}): string | null {
   const meta = appMeta(appId);
   if (!meta) return null;
+  if (!isInstalled(state.settings.installed, appId)) {
+    notify(`${meta.name} isn't installed`, 'Get it from the App Store.', { appId: 'appstore' });
+    return openApp('appstore', { focus: appId });
+  }
   const key = opts.key ?? (meta.single ? appId : `${appId}:${uid()}`);
   const s = state;
   const existing = s.windows.find((w) => w.key === key);
@@ -149,6 +154,7 @@ export function openApp(appId: string, props: any = {}, opts: { key?: string; ti
     id: uid(), appId, key, title: opts.title ?? meta.name, props, ...r,
     minimized: false, maximized: false, floating: false, openedAt: Date.now(),
   };
+  if (!s.settings.windowed && !isMobileViewport()) { win.restore = { x: win.x, y: win.y, w: win.w, h: win.h }; win.maximized = true; }
   setState((st) => ({ windows: [...st.windows, win], focusId: win.id, panel: null, menuOpen: null }));
   return win.id;
 }
@@ -332,3 +338,18 @@ export function factoryReset() {
 
 export const defaultServer = () => STREAMING_SERVERS.find((s) => s.id === state.settings.parental.defaultServerId) ?? STREAMING_SERVERS[0];
 export const allApps = () => APP_META;
+
+/* ───────── app store ───────── */
+export function installApp(id: string) {
+  const meta = appMeta(id);
+  if (!meta || meta.core || state.settings.installed.includes(id)) return;
+  setSettings({ installed: [...state.settings.installed, id] });
+  notify(`${meta.name} installed`, 'Find it in the Dock.', { appId: id });
+}
+export function uninstallApp(id: string) {
+  const meta = appMeta(id);
+  if (!meta || meta.core) return;
+  closeApp(id);
+  setSettings({ installed: state.settings.installed.filter((x) => x !== id) });
+  notify(`${meta.name} removed`);
+}

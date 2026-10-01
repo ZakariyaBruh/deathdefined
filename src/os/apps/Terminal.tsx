@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { WinState } from '../types';
 import type { MediaItem } from '../../types';
-import { APP_META, ACCENTS, appMeta } from '../appMeta';
+import { APP_META, ACCENTS, appMeta, isInstalled } from '../appMeta';
 import { CATALOG, loadMeta, localSearch } from '../catalog';
 import { evaluate, fmtNum } from '../math';
 import {
@@ -148,7 +148,7 @@ export default function Terminal({ win }: { win: WinState }) {
         if (n && n.open) { n.open(); ok(`Opening ${n.name}…`); } else err(`open: nothing named "${rest}"`);
         break;
       }
-      case 'apps': ok(APP_META.filter((a) => !a.hidden).map((a) => `${a.id.padEnd(12)}${a.name.padEnd(14)}${a.blurb}`).join('\n')); break;
+      case 'apps': ok(APP_META.filter((a) => !a.hidden && isInstalled(s.settings.installed, a.id)).map((a) => `${a.id.padEnd(12)}${a.name.padEnd(14)}${a.blurb}`).join('\n')); break;
       case 'ps': ok('PID       APP            TITLE\n' + (s.windows.length ? s.windows.map((w) => `${w.id.padEnd(9)} ${w.appId.padEnd(14)} ${w.title}${w.minimized ? ' (min)' : ''}`).join('\n') : '(no processes)')); break;
       case 'kill': {
         const w = s.windows.find((x) => x.id === args[0]);

@@ -1,4 +1,4 @@
-import { APP_META } from './appMeta';
+import { APP_META, isInstalled } from './appMeta';
 import { CATALOG } from './catalog';
 import { exportData, getState, openApp, openDetails, playMedia, deleteNote, toggleWatchlist } from './store';
 import { matchesAgeFilter } from '../utils/ageFilter';
@@ -53,7 +53,7 @@ export function list(path: string): VNode[] | null {
     return s.notes.map((n) => ({ name: `${safe(n.title)}.txt`, path: `${p}/${safe(n.title)}`, kind: 'file', ext: 'txt', size: n.body.length, modified: n.updated, open: () => openApp('notes', { noteId: n.id }), read: () => n.body + '\n', remove: () => deleteNote(n.id) }));
   }
   if (p === '/Applications') {
-    return APP_META.filter((a) => !a.hidden).map((a) => ({ name: `${a.name}.app`, path: `${p}/${a.name}`, kind: 'file', ext: 'app', appId: a.id, size: 1, open: () => openApp(a.id), read: () => `${a.name}\n${a.blurb}\n` }));
+    return APP_META.filter((a) => !a.hidden && isInstalled(s.settings.installed, a.id)).map((a) => ({ name: `${a.name}.app`, path: `${p}/${a.name}`, kind: 'file', ext: 'app', appId: a.id, size: 1, open: () => openApp(a.id), read: () => `${a.name}\n${a.blurb}\n` }));
   }
   if (p === '/Archive') {
     return CATALOG.filter((m) => matchesAgeFilter(m, 'ALL', s.settings.parental)).map((m) => ({ name: `${safe(m.title)}.${m.type === 'tv' ? 'series' : 'film'}`, path: `${p}/${safe(m.title)}`, kind: 'file', ext: m.type === 'tv' ? 'series' : 'film', size: m.synopsis.length, poster: m.posterUrl, open: () => openDetails(m), read: () => mediaDesc(m) }));

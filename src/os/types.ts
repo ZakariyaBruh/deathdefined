@@ -27,7 +27,8 @@ export interface OSSettings {
   theme: 'dark' | 'light';
   accent: string;
   wallpaper: string;
-  dockPinned: string[];
+  installed: string[];
+  windowed: boolean;
   dockMagnify: boolean;
   dockSize: number;
   clock24: boolean;

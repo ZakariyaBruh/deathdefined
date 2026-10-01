@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import { Search, X } from 'lucide-react';
 import { useState } from 'react';
-import { APP_META, appMeta } from '../appMeta';
+import { APP_META, appMeta, isInstalled } from '../appMeta';
 import { closePanel, closeWindow, focusWindow, openApp, useOS } from '../store';
 import { AppIcon } from '../ui/icons';
 
@@ -33,7 +33,8 @@ export function MissionControl() {
 
 export function Launchpad() {
   const [q, setQ] = useState('');
-  const apps = APP_META.filter((a) => !a.hidden && a.name.toLowerCase().includes(q.toLowerCase()));
+  const installed = useOS((s) => s.settings.installed);
+  const apps = APP_META.filter((a) => !a.hidden && isInstalled(installed, a.id) && a.name.toLowerCase().includes(q.toLowerCase()));
   return (
     <motion.div initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} className="fixed inset-0 z-[6500] overflow-y-auto bg-black/60 px-6 pb-28 pt-16 backdrop-blur-2xl" onPointerDown={closePanel}>
       <div className="mx-auto mb-10 flex w-72 items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5" onPointerDown={(e) => e.stopPropagation()}>

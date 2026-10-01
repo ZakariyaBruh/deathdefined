@@ -16,7 +16,7 @@ export default function About(_: { win: WinState }) {
     <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
       <div className="grid h-24 w-24 place-items-center rounded-[26px] bg-white text-black shadow-2xl"><Play size={44} fill="currentColor" className="ml-1" /></div>
       <div>
-        <div className="font-[var(--font-display)] text-3xl font-extrabold tracking-[0.2em]">CINEOS</div>
+        <div className="font-[var(--font-display)] text-3xl font-extrabold tracking-[0.2em]">CINESTREAM</div>
         <div className="text-[13px] text-[var(--fg-2)]">The operating system for cinema and television</div>
       </div>
       <dl className="w-full max-w-xs space-y-1.5 text-left text-[13px]">

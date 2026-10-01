@@ -1,9 +1,9 @@
 import { Download, Eye, Keyboard, Lock, Palette, Play, Settings2, ShieldCheck, Trash2, Upload, Database, LayoutGrid } from 'lucide-react';
 import { useRef, useState, type ReactNode } from 'react';
 import type { WinState } from '../types';
-import { ACCENTS, APP_META } from '../appMeta';
+import { ACCENTS, APP_META, isInstalled } from '../appMeta';
 import { CATALOG } from '../catalog';
-import { clearHistory, exportData, factoryReset, importData, notify, setSettings, useOS } from '../store';
+import { clearHistory, exportData, factoryReset, importData, notify, openApp, setSettings, uninstallApp, useOS } from '../store';
 import { WALLPAPERS, wallpaperCss } from '../wallpapers';
 import { Btn, Segmented, Toggle } from '../ui/bits';
 import { AppIcon } from '../ui/icons';
@@ -15,7 +15,7 @@ type Tab = 'general' | 'appearance' | 'dock' | 'parental' | 'playback' | 'data' 
 const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: 'general', label: 'General', icon: <Settings2 size={15} /> },
   { id: 'appearance', label: 'Appearance', icon: <Palette size={15} /> },
-  { id: 'dock', label: 'Dock', icon: <LayoutGrid size={15} /> },
+  { id: 'dock', label: 'Dock & Apps', icon: <LayoutGrid size={15} /> },
   { id: 'parental', label: 'Parental Controls', icon: <ShieldCheck size={15} /> },
   { id: 'playback', label: 'Playback', icon: <Play size={15} /> },
   { id: 'data', label: 'Data & Backup', icon: <Database size={15} /> },
@@ -75,6 +75,7 @@ export default function Settings({ win }: { win: WinState }) {
               <Row label="Your name" hint="Shown on the lock screen"><input value={s.userName} onChange={(e) => set({ userName: e.target.value.slice(0, 24) || 'Guest' })} className="w-40 rounded-lg bg-[var(--fill)] px-3 py-1.5 text-[13px] outline-none" /></Row>
               <Row label="24-hour clock"><Toggle on={s.clock24} onChange={(v) => set({ clock24: v })} label="24-hour clock" /></Row>
               <Row label="System sounds" hint="Boot chime and interface sounds"><Toggle on={s.sounds} onChange={(v) => set({ sounds: v })} label="Sounds" /></Row>
+              <Row label="Floating windows" hint="Off: apps open full-screen like a phone or tablet"><Toggle on={s.windowed} onChange={(v) => set({ windowed: v })} label="Floating windows" /></Row>
               <Row label="Reduce motion"><Toggle on={s.reduceMotion} onChange={(v) => set({ reduceMotion: v })} label="Reduce motion" /></Row>
               <Row label="Desktop widgets"><Toggle on={s.showWidgets} onChange={(v) => set({ showWidgets: v })} label="Widgets" /></Row>
               <Row label="Desktop icons"><Toggle on={s.showDesktopIcons} onChange={(v) => set({ showDesktopIcons: v })} label="Desktop icons" /></Row>
@@ -97,10 +98,11 @@ export default function Settings({ win }: { win: WinState }) {
             {tab === 'dock' && (<>
               <Row label="Magnification"><Toggle on={s.dockMagnify} onChange={(v) => set({ dockMagnify: v })} label="Dock magnification" /></Row>
               <Row label="Icon size"><input type="range" min={36} max={72} value={s.dockSize} onChange={(e) => set({ dockSize: +e.target.value })} className="w-40 accent-[var(--accent)]" aria-label="Dock size" /></Row>
-              <div className="py-3 text-[13px] font-semibold">Pinned apps</div>
+              <div className="flex items-center justify-between py-3"><div className="text-[13px] font-semibold">Installed apps</div><Btn variant="soft" onClick={() => openApp('appstore')}>Open App Store</Btn></div>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {APP_META.filter((a) => !a.hidden).map((a) => { const on = s.dockPinned.includes(a.id); return (
-                  <button key={a.id} onClick={() => set({ dockPinned: on ? s.dockPinned.filter((x) => x !== a.id) : [...s.dockPinned, a.id] })} className={`flex items-center gap-2 rounded-xl p-2 text-left text-[13px] ${on ? 'bg-[var(--fill-3)]' : 'bg-[var(--fill)] opacity-60'}`}><AppIcon id={a.id} size={26} />{a.name}</button>); })}
+                {APP_META.filter((a) => !a.hidden && isInstalled(s.installed, a.id)).map((a) => (
+                  <div key={a.id} className="flex items-center gap-2 rounded-xl bg-[var(--fill)] p-2 text-[13px]"><AppIcon id={a.id} size={26} /><span className="min-w-0 flex-1 truncate">{a.name}</span>{!a.core && <button aria-label={`Remove ${a.name}`} onClick={() => uninstallApp(a.id)} className="rounded-md p-1 text-red-400 hover:bg-red-500/15"><Trash2 size={13} /></button>}</div>
+                ))}
               </div>
             </>)}
 

@@ -1,6 +1,6 @@
 import { Calculator, Link2, Loader2, Lock, Moon, Play, Power, Search, Sun } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { APP_META } from '../appMeta';
+import { APP_META, isInstalled } from '../appMeta';
 import { CATALOG, localSearch, useAllowed, useSearch } from '../catalog';
 import { evaluate, fmtNum } from '../math';
 import { closePanel, lock, openApp, openDetails, playMedia, restart, setSettings, shutdown, toggleWatchlist, useOS } from '../store';
@@ -19,6 +19,7 @@ export function Spotlight() {
   const theme = useOS((s) => s.settings.theme);
   const notes = useOS((s) => s.notes);
   const parental = useOS((s) => s.settings.parental);
+  const installed = useOS((s) => s.settings.installed);
   const allowed = useAllowed(CATALOG);
   const { results: online, loading } = useSearch(q);
 
@@ -38,7 +39,7 @@ export function Spotlight() {
       const item = createCustomMediaItem(direct);
       out.push({ id: 'direct', section: 'Direct Play', icon: <Link2 size={20} />, title: `Play ${direct}`, sub: 'Stream by IMDb identifier', run: () => playMedia(item) });
     }
-    APP_META.filter((a) => !a.hidden && (a.name.toLowerCase().includes(sl) || a.blurb.toLowerCase().includes(sl)))
+    APP_META.filter((a) => !a.hidden && isInstalled(installed, a.id) && (a.name.toLowerCase().includes(sl) || a.blurb.toLowerCase().includes(sl)))
       .slice(0, 4).forEach((a) => out.push({ id: `app-${a.id}`, section: 'Applications', icon: <AppIcon id={a.id} size={28} />, title: a.name, sub: a.blurb, run: () => openApp(a.id) }));
 
     const actions: { t: string; kw: string; icon: ReactNode; run: () => void }[] = [
@@ -66,7 +67,7 @@ export function Spotlight() {
     notes.filter((n) => (n.title + n.body).toLowerCase().includes(sl)).slice(0, 3)
       .forEach((n) => out.push({ id: `n-${n.id}`, section: 'Notes', icon: <AppIcon id="notes" size={28} />, title: n.title, sub: n.body.slice(0, 70), run: () => openApp('notes', { noteId: n.id }) }));
     return out;
-  }, [q, online, allowed, theme, notes, parental]);
+  }, [q, online, allowed, theme, notes, parental, installed]);
 
   useEffect(() => setSel(0), [q]);
 

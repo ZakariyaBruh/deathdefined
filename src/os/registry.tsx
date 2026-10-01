@@ -4,6 +4,7 @@ import type { WinState } from './types';
 export type AppComponent = ComponentType<{ win: WinState }>;
 
 export const APP_COMPONENTS: Record<string, AppComponent> = {
+  appstore: lazy(() => import('./apps/AppStore')),
   store: lazy(() => import('./apps/Store')),
   library: lazy(() => import('./apps/Library')),
   player: lazy(() => import('./apps/Player')),
